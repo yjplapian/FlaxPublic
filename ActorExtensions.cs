@@ -128,10 +128,10 @@ namespace Game
         }
 
         /// <summary>
-        /// 
+        /// Gets the first type it comes across from the array of parent actors
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T"> the target type it needs to look for </typeparam>
+        /// <returns> The first type it finds from the array of actors </returns>
         public T GetScriptInParent<T>() where T : Script
         {
             var parents = GetParents();
@@ -148,6 +148,11 @@ namespace Game
             return target;
         }
 
+        /// <summary>
+        /// Gets all instances of the type it comes across from the array of parent actors
+        /// </summary>
+        /// <typeparam name="T"> the target type it needs to look for </typeparam>
+        /// <returns> An array of the type it finds from the array of actors </returns>
         public T[] GetScriptsInParents<T>() where T : Script
         {
             var parents = GetParents();
