@@ -1,37 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using FlaxEngine;
 
 namespace Game
 {
     /// <summary>
-    /// ScriptExtensiosn Script.
+    /// Actor Extensions. Should be merged into the default script base
     /// </summary>
     public class ActorExtensions : Script
     {
-        [Header("Generic")]
-        public Actor rootActor;
-
-        [Header("Children")]
-        public List<Actor> recursiveChilds = new();
-        public GettersTest getInChild;
-        public GettersTest[] getInChildren;
-
-        [Header("Parent")]
-        public GettersTest getInParent;
-        public GettersTest[] getInParents;
-
-        public override void OnStart()
-        {
-            rootActor = GetRoot(false);
-            recursiveChilds = GetChildrenRecursive();
-            getInChild = GetScriptInChild<GettersTest>();
-            getInChildren = GetScriptsInChildren<GettersTest>();
-            getInParent = GetScriptInParent<GettersTest>();
-            getInParents = GetScriptsInParents<GettersTest>();
-        }
-
         /// <summary>
         /// Gets the root (unparented actor) actor of this actor
         /// </summary>
@@ -56,7 +33,7 @@ namespace Game
                 parents.Add(parent);
             }
 
-            return parents.Last();
+            return parents[parents.Count -1];
         }
 
         /// <summary>
