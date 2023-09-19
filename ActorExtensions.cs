@@ -2,6 +2,8 @@
 
 namespace FlaxEngine
 {
+    //TODO: Add Getters for other components beside scripts
+
     /// <summary>
     /// Static Extensions for the Actor base
     /// </summary>
@@ -103,10 +105,11 @@ namespace FlaxEngine
         }
 
         /// <summary>
-        /// 
+        /// Gets the first instance of the type in any parent it comes across
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T"> the target type </typeparam>
+        /// <param name="Main"> the actor it starts at </param>
+        /// <returns> first instance of the targeted type </returns>
         public static T GetScriptInParent<T>(Actor Main) where T : Script
         {
             var Parents = GetParents(Main);
