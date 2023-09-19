@@ -1,4 +1,6 @@
-﻿namespace FlaxEngine
+﻿using System;
+
+namespace FlaxEngine
 {
     public static class LayersMaskExtension
     {
@@ -10,8 +12,13 @@
         /// <returns> A LayersMask with the specified layers checked </returns>
         public static LayersMask SetLayer(LayersMask LayersMask, int[] Index)
         {
-            foreach(var value in Index)
-                LayersMask.Mask += (uint)value;
+            foreach (var Value in Index)
+            {
+                if (Value > 32 || Value < 1)
+                    throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 1 ~ 32");
+
+                LayersMask.Mask += (uint)Value;
+            }
 
             return LayersMask;
         }
@@ -24,6 +31,9 @@
         /// <returns> A LayersMask with the specified layer checked </returns>
         public static LayersMask SetLayer(LayersMask LayersMask, int Index)
         {
+            if (Index > 32 || Index < 1)
+                throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 1 ~ 32");
+
             LayersMask.Mask = (uint)Index;
             return LayersMask;
         }
