@@ -1,65 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using FlaxEngine;
+﻿using System.Collections.Generic;
 
-namespace Game
+namespace FlaxEngine
 {
     /// <summary>
-    /// Actor Extensions. Should be merged into the default script base
+    /// Static Extensions for the Actor base
     /// </summary>
-    public class ActorExtensions : Script
+    public static class ActorExtensions
     {
         /// <summary>
         /// Gets the root (unparented actor) actor of this actor
         /// </summary>
-        /// <param name="includeScene"> whetherr or not to include the scene object </param>
+        /// <param name="Main"> the base actor it starts at </param>
+        /// <param name="IncludeScene"> whetherr or not to include the scene object </param>
         /// <returns> includeScene = true returns the scene the actor is part of 
         /// includeScene = false returns the first unparented actor this actor is part of </returns>
-        public Actor GetRoot(bool includeScene = false)
+        public static Actor GetRoot(Actor Main, bool IncludeScene = false)
         {
-            Actor parent = Actor.Parent;
-
-            List<Actor> parents = new List<Actor> 
+            Actor Parent = Main.Parent;
+            List<Actor> Parents = new List<Actor> 
             {
-                parent 
+                Parent 
             };
 
-            while(parent.Parent != null)
+            while(Parent.Parent != null)
             {
-                if (parents.Contains(parent.Parent) || !includeScene && parent.Parent.GetType().Equals(typeof(Scene)))
+                if (Parents.Contains(Parent.Parent) || !IncludeScene && Parent.Parent.GetType().Equals(typeof(Scene)))
                     break;
 
-                parent = parent.Parent;
-                parents.Add(parent);
+                Parent = Parent.Parent;
+                Parents.Add(Parent);
             }
 
-            return parents[parents.Count -1];
+            return Parents[Parents.Count -1];
         }
 
         /// <summary>
         /// Gets a list of all parent objects
         /// </summary>
-        /// <param name="includeScene"> Whether or not to include the scene as a parent as it technically is a parent object</param>
+        /// <param name="Main"> The base actor it starts at </param>
+        /// <param name="IncludeScene"> Whether or not to include the scene as a parent as it technically is a parent object</param>
         /// <returns> a list of actors that are considered to be parents of this actor </returns>
-        private List<Actor> GetParents(bool includeScene = false)
+        private static List<Actor> GetParents(Actor Main, bool IncludeScene = false)
         {
-            Actor parent = Actor.Parent;
-
-            List<Actor> parents = new List<Actor>
+            Actor Parent = Main.Parent;
+            List<Actor> Parents = new List<Actor>
             {
-                parent
+                Parent
             };
 
-            while (parent.Parent != null)
+            while (Parent.Parent != null)
             {
-                if (parents.Contains(parent.Parent) || !includeScene && parent.Parent.GetType().Equals(typeof(Scene)))
+                if (Parents.Contains(Parent.Parent) || !IncludeScene && Parent.Parent.GetType().Equals(typeof(Scene)))
                     break;
 
-                parent = parent.Parent;
-                parents.Add(parent);
+                Parent = Parent.Parent;
+                Parents.Add(Parent);
             }
 
-            return parents;
+            return Parents;
         }
 
         /// <summary>
@@ -67,20 +65,20 @@ namespace Game
         /// </summary>
         /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
         /// <returns> The first type it comes across from all the child actors </returns>
-        public T GetScriptInChild<T>() where T : Script
+        public static T GetScriptInChild<T>(Actor Main) where T : Script
         {
-            List<Actor> children = GetChildrenRecursive();
-            T target = null; 
+            List<Actor> Children = GetChildrenRecursive(Main);
+            T Target = null; 
 
-            foreach (var child in children)
+            foreach (var Child in Children)
             {
-                target = child.GetScript<T>();
+                Target = Child.GetScript<T>();
 
-                if (target != null)
+                if (Target != null)
                     break;
             }
 
-            return target;
+            return Target;
         }
 
         /// <summary>
@@ -88,123 +86,126 @@ namespace Game
         /// </summary>
         /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
         /// <returns> The array of the type it comes across from all the child actors </returns>
-        public T[] GetScriptsInChildren<T>() where T : Script
+        public static T[] GetScriptsInChildren<T>(Actor Main) where T : Script
         {
-            List<Actor> children = GetChildrenRecursive();
-            List<T> targets = new();
+            List<Actor> Children = GetChildrenRecursive(Main);
+            List<T> Targets = new();
 
-            foreach (var child in children)
+            foreach (var Child in Children)
             {
-                var tmp = child.GetScript<T>();
+                var Tmp = Child.GetScript<T>();
 
-                if(tmp != null && !targets.Contains(tmp))
-                    targets.Add(tmp);
+                if(Tmp != null && !Targets.Contains(Tmp))
+                    Targets.Add(Tmp);
             }
 
-            return targets.ToArray();
+            return Targets.ToArray();
         }
 
         /// <summary>
-        /// Gets the first type it comes across from the array of parent actors
+        /// 
         /// </summary>
-        /// <typeparam name="T"> the target type it needs to look for </typeparam>
-        /// <returns> The first type it finds from the array of actors </returns>
-        public T GetScriptInParent<T>() where T : Script
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T GetScriptInParent<T>(Actor Main) where T : Script
         {
-            var parents = GetParents();
-            T target = null;
+            var Parents = GetParents(Main);
+            T Target = null;
 
-            foreach(var parent in parents)
+            foreach(var Parent in Parents)
             {
-                target = parent.GetScript<T>();
+                Target = Parent.GetScript<T>();
 
-                if (target != null)
+                if (Target != null)
                     break;
             }
    
-            return target;
+            return Target;
         }
 
         /// <summary>
-        /// Gets all instances of the type it comes across from the array of parent actors
+        /// Gets all instances of the type in any parent it comes across
         /// </summary>
-        /// <typeparam name="T"> the target type it needs to look for </typeparam>
-        /// <returns> An array of the type it finds from the array of actors </returns>
-        public T[] GetScriptsInParents<T>() where T : Script
+        /// <typeparam name="T"> the target type </typeparam>
+        /// <param name="Main"> the actor it starts at </param>
+        /// <returns> an array of instances of the targeted type </returns>
+        public static T[] GetScriptsInParents<T>(Actor Main) where T : Script
         {
-            var parents = GetParents();
-            List<T> targets = new();
+            var Parents = GetParents(Main);
+            List<T> Targets = new();
 
-            foreach (var parent in parents)
+            foreach (var parent in Parents)
             {
-               T target = parent.GetScript<T>();
+               T Target = parent.GetScript<T>();
 
-                if(target != null && !targets.Contains(target))
-                    targets.Add(target);
+                if(Target != null && !Targets.Contains(Target))
+                    Targets.Add(Target);
             }
 
-            return targets.ToArray();
+            return Targets.ToArray();
         }
 
         /// <summary>
         /// Gets all children actors and puts them in a list for use (probably needs optimization - It iterates now based on indented layers)
         /// </summary>
-        /// <param name="includeThisActor"> whether or not to include the base actor into the list </param>
+        /// <param name="Main"> the default actor it needs to start from </param>
+        /// <param name="IncludeThisActor"> whether or not to include the base actor into the list </param>
         /// <returns>A list of all child actors </returns>
-        private List<Actor> GetChildrenRecursive(bool includeThisActor = false)
+        private static List<Actor> GetChildrenRecursive(Actor Main, bool IncludeThisActor = false)
         {
-            List<Actor> actors = new();
-            var directChildren = Actor.GetChildren<Actor>();
+            List<Actor> Actors = new();
+            var DirectChildren = Main.GetChildren<Actor>();
 
-            if (includeThisActor)
-                actors.Add(Actor);
+            if (IncludeThisActor)
+                Actors.Add(Main);
 
-            for (int i = 0; i < directChildren.Length; i++)
-                actors.Add(directChildren[i]);
+            for (int i = 0; i < DirectChildren.Length; i++)
+                Actors.Add(DirectChildren[i]);
             
-            for(int j = 0 ; j < actors.Count; j++)
+            for(int j = 0 ; j < Actors.Count; j++)
             {
-                if (actors[j].HasChildren)
+                if (Actors[j].HasChildren)
                 {
-                    var newChildren = actors[j].GetChildren<Actor>();
+                    var NewChildren = Actors[j].GetChildren<Actor>();
 
-                    for (int k = 0; k < newChildren.Length; k++)
-                        actors.Add(newChildren[k]);
+                    for (int k = 0; k < NewChildren.Length; k++)
+                        Actors.Add(NewChildren[k]);
                 }
             }
 
-            return actors;
+            return Actors;
         }
 
         /// <summary>
         /// Gets all children actors and puts them in a list for use (probably needs optimization - It iterates now based on indented layers)
         /// </summary>
-        /// <param name="target"> the external actor object that is used instead of the default one </param>
-        /// <param name="includeThisActor"> whether or not to include the base actor into the list </param>
+        /// <param name="Main"> the actor it starts at </param>
+        /// <param name="Target"> the external actor object that is used instead of the default one </param>
+        /// <param name="IncludeThisActor"> whether or not to include the base actor into the list </param>
         /// <returns>A list of all child actors </returns>
-        public List<Actor> GetChildrenRecursive(Actor target, bool includeThisActor = false)
+        public static List<Actor> GetChildrenRecursive(Actor Main, Actor Target, bool IncludeThisActor = false)
         {
-            List<Actor> actors = new();
-            var directChildren = target.GetChildren<Actor>();
+            List<Actor> Actors = new();
+            var DirectChildren = Target.GetChildren<Actor>();
 
-            if (includeThisActor)
-                actors.Add(Actor);
+            if (IncludeThisActor)
+                Actors.Add(Main);
 
-            for (int i = 0; i < directChildren.Length; i++)
-                actors.Add(directChildren[i]);
+            for (int i = 0; i < DirectChildren.Length; i++)
+                Actors.Add(DirectChildren[i]);
 
-            for (int j = 0; j < actors.Count; j++)
+            for (int j = 0; j < Actors.Count; j++)
             {
-                if (actors[j].HasChildren)
+                if (Actors[j].HasChildren)
                 {
-                    var newChildren = actors[j].GetChildren<Actor>();
+                    var NewChildren = Actors[j].GetChildren<Actor>();
 
-                    for (int k = 0; k < newChildren.Length; k++)
-                        actors.Add(newChildren[k]);
+                    for (int k = 0; k < NewChildren.Length; k++)
+                        Actors.Add(NewChildren[k]);
                 }
             }
 
-            return actors;
+            return Actors;
         }
     }
 }
