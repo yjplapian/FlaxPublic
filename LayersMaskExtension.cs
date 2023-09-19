@@ -16,6 +16,12 @@
             return LayersMask;
         }
 
+        /// <summary>
+        /// Sets the LayersMask to a single layer
+        /// </summary>
+        /// <param name="LayersMask"> The LayerMask being edited </param>
+        /// <param name="Index"> The targeted layer </param>
+        /// <returns> A LayersMask with the specified layer checked </returns>
         public static LayersMask SetLayer(LayersMask LayersMask, int Index)
         {
             LayersMask.Mask = (uint)Index;
