@@ -2,8 +2,6 @@
 
 namespace FlaxEngine
 {
-    //TODO: Add Getters for other components beside scripts
-
     /// <summary>
     /// Static Extensions for the Actor base
     /// </summary>
@@ -14,8 +12,7 @@ namespace FlaxEngine
         /// </summary>
         /// <param name="Main"> the base actor it starts at </param>
         /// <param name="IncludeScene"> whetherr or not to include the scene object </param>
-        /// <returns> includeScene = true returns the scene the actor is part of 
-        /// includeScene = false returns the first unparented actor this actor is part of </returns>
+        /// <returns> The root (unparented) Actor </returns>
         public static Actor GetRoot(Actor Main, bool IncludeScene = false)
         {
             Actor Parent = Main.Parent;
@@ -33,18 +30,219 @@ namespace FlaxEngine
                 Parents.Add(Parent);
             }
 
-            return Parents[Parents.Count -1];
+            return Parents[^1];
         }
 
         /// <summary>
-        /// Gets a list of all parent objects
+        /// Gets the first parent actor it comes across and casts it as type of T
+        /// </summary>
+        /// <typeparam name="T"> The type the actor needs to be cast as </typeparam>
+        /// <param name="Main"> The target actor it starts searching from </param>
+        /// <returns> The first cast actor it finds </returns>
+        public static T GetParent<T>(Actor Main) where T : Actor
+        {
+            T Tmp = null;
+            List<Actor> Parents = Internal_GetParents(Main, false);
+
+            foreach (var Parent in Parents)
+            {
+                Tmp = (T)Parent;
+
+                if (Tmp != null)
+                    break;
+            }
+
+            return Tmp;
+        }
+
+        /// <summary>
+        /// Gets all parent actors it comes across and casts them as type of T
+        /// </summary>
+        /// <typeparam name="T"> The type the actor needs to be cast as </typeparam>
+        /// <param name="Main"> The target actor it starts searching from </param>
+        /// <returns> Array of actors cast as T </returns>
+        public static T[] GetParents<T>(Actor Main) where T : Actor
+        {
+            List<Actor> Parents = Internal_GetParents(Main, false);
+            List<T> Targets = new List<T>();
+
+            foreach (var Parent in Parents)
+            {
+                T Tmp = Parent as T;
+
+                if (Tmp != null && !Targets.Contains(Tmp))
+                    Targets.Add(Tmp);            
+            }
+
+            return Targets.ToArray();
+        }
+
+        #region Get Scripts Functions
+        /// <summary>
+        /// Gets the target type in the first child it comes across
+        /// </summary>
+        /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
+        /// <param name="Main"> The targeted Actor it needs to check the child actors of </param>
+        /// <param name="IncludeInactive"> Whether or not to skip inactive actors </param>
+        /// <returns> The first type it comes across from all the child actors </returns>
+        public static T GetScriptInChild<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        {
+            List<Actor> Children = Internal_GetAllChildren(Main);
+            T Target = null;
+
+            foreach (var Child in Children)
+            {
+                 Target = Child.GetScript<T>();
+
+                if (Target != null)
+                {
+                    if (!Target.Enabled && !IncludeInactive || !Target.Actor.IsActive && !IncludeInactive)
+                        continue;
+
+                    else
+                        break;
+                }
+            }
+
+            return Target;
+        }
+
+        /// <summary>
+        /// Gets the target type in all childs it comes across
+        /// </summary>
+        /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
+        /// <param name="Main"> The targeted Actor it needs to check the child actors of </param>
+        /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
+        /// <returns> The array of the type it comes across from all the child actors </returns>
+        public static T[] GetScriptsInChildren<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        {
+            List<Actor> Children = Internal_GetAllChildren(Main);
+            List<T> Targets = new();
+
+            foreach (var Child in Children)
+            {
+                T Target = Child.GetScript<T>();
+
+                if (Target != null)
+                {
+                    if (!Target.Enabled && !IncludeInactive || !Target.Actor.IsActive && !IncludeInactive)
+                        continue;
+                }
+
+                if (Target != null && !Targets.Contains(Target))
+                    Targets.Add(Target);
+            }
+
+            return Targets.ToArray();
+        }
+
+        /// <summary>
+        /// Gets the first instance of the type in any parent it comes across
+        /// </summary>
+        /// <typeparam name="T"> the target type </typeparam>
+        /// <param name="Main"> the actor it starts at </param>
+        /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
+        /// <returns> first instance of the targeted type </returns>
+        public static T GetScriptInParent<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        {
+            var Parents = Internal_GetParents(Main);
+            T Target = null;
+
+            foreach(var Parent in Parents)
+            {
+                Target = Parent.GetScript<T>();
+
+                if (Target != null)
+                {
+                    if (!Target.Enabled && !IncludeInactive)
+                        continue;
+
+                    else
+                        break;
+                }
+            }
+   
+            return Target;
+        }
+        #endregion
+
+        /// <summary>
+        /// Gets all instances of the type in any parent it comes across
+        /// </summary>
+        /// <typeparam name="T"> the target type </typeparam>
+        /// <param name="Main"> the actor it starts at </param>
+        /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
+        /// <returns> an array of instances of the targeted type </returns>
+        public static T[] GetScriptsInParents<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        {
+            var Parents = Internal_GetParents(Main);
+            List<T> Targets = new();
+
+            foreach (var parent in Parents)
+            {
+               T Target = parent.GetScript<T>();
+
+                if (Target != null)
+                {
+                    if (!Target.Enabled && !IncludeInactive)
+                        continue;
+
+                    if (!Targets.Contains(Target))
+                        Targets.Add(Target);
+                }
+            }
+
+            return Targets.ToArray();
+        }
+
+        #region Internal Functions
+        /// <summary>
+        /// Gets all children actors and puts them in a list for use (probably needs optimization - It iterates now based on indented layers)
+        /// </summary>
+        /// <param name="Main"> the default actor it needs to start from </param>
+        /// <param name="IncludeThisActor"> whether or not to include the base actor into the list </param>
+        /// <returns>A list of all child actors </returns>
+        private static List<Actor> Internal_GetAllChildren(Actor Main, bool IncludeThisActor = false)
+        {
+            List<Actor> Actors = new();
+            var DirectChildren = Main.GetChildren<Actor>();
+
+            if (IncludeThisActor)
+                Actors.Add(Main);
+
+            for (int i = 0; i < DirectChildren.Length; i++)
+            {
+                if (!Actors.Contains(DirectChildren[i]))
+                    Actors.Add(DirectChildren[i]);
+            }
+            
+            for(int j = 0 ; j < Actors.Count; j++)
+            {
+                if (Actors[j].HasChildren)
+                {
+                    var NewChildren = Actors[j].GetChildren<Actor>();
+
+                    for (int k = 0; k < NewChildren.Length; k++)
+                    {
+                        if (!Actors.Contains(NewChildren[k]))
+                            Actors.Add(NewChildren[k]);
+                    }
+                }
+            }
+
+            return Actors;
+        }
+
+        /// <summary>
+        /// Gets a list of all parent objects (probably needs optimization - It iterates now based on indented layers)
         /// </summary>
         /// <param name="Main"> The base actor it starts at </param>
         /// <param name="IncludeScene"> Whether or not to include the scene as a parent as it technically is a parent object</param>
         /// <returns> a list of actors that are considered to be parents of this actor </returns>
-        private static List<Actor> GetParents(Actor Main, bool IncludeScene = false)
+        private static List<Actor> Internal_GetParents(Actor Main, bool IncludeScene = false)
         {
             Actor Parent = Main.Parent;
+
             List<Actor> Parents = new List<Actor>
             {
                 Parent
@@ -61,154 +259,6 @@ namespace FlaxEngine
 
             return Parents;
         }
-
-        /// <summary>
-        /// Gets the target type in the first child it comes across
-        /// </summary>
-        /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
-        /// <returns> The first type it comes across from all the child actors </returns>
-        public static T GetScriptInChild<T>(Actor Main) where T : Script
-        {
-            List<Actor> Children = GetChildrenRecursive(Main);
-            T Target = null; 
-
-            foreach (var Child in Children)
-            {
-                Target = Child.GetScript<T>();
-
-                if (Target != null)
-                    break;
-            }
-
-            return Target;
-        }
-
-        /// <summary>
-        /// Gets the target type in all child actors it comes across
-        /// </summary>
-        /// <typeparam name="T"> The targeted type it needs to look for </typeparam>
-        /// <returns> The array of the type it comes across from all the child actors </returns>
-        public static T[] GetScriptsInChildren<T>(Actor Main) where T : Script
-        {
-            List<Actor> Children = GetChildrenRecursive(Main);
-            List<T> Targets = new();
-
-            foreach (var Child in Children)
-            {
-                var Tmp = Child.GetScript<T>();
-
-                if(Tmp != null && !Targets.Contains(Tmp))
-                    Targets.Add(Tmp);
-            }
-
-            return Targets.ToArray();
-        }
-
-        /// <summary>
-        /// Gets the first instance of the type in any parent it comes across
-        /// </summary>
-        /// <typeparam name="T"> the target type </typeparam>
-        /// <param name="Main"> the actor it starts at </param>
-        /// <returns> first instance of the targeted type </returns>
-        public static T GetScriptInParent<T>(Actor Main) where T : Script
-        {
-            var Parents = GetParents(Main);
-            T Target = null;
-
-            foreach(var Parent in Parents)
-            {
-                Target = Parent.GetScript<T>();
-
-                if (Target != null)
-                    break;
-            }
-   
-            return Target;
-        }
-
-        /// <summary>
-        /// Gets all instances of the type in any parent it comes across
-        /// </summary>
-        /// <typeparam name="T"> the target type </typeparam>
-        /// <param name="Main"> the actor it starts at </param>
-        /// <returns> an array of instances of the targeted type </returns>
-        public static T[] GetScriptsInParents<T>(Actor Main) where T : Script
-        {
-            var Parents = GetParents(Main);
-            List<T> Targets = new();
-
-            foreach (var parent in Parents)
-            {
-               T Target = parent.GetScript<T>();
-
-                if(Target != null && !Targets.Contains(Target))
-                    Targets.Add(Target);
-            }
-
-            return Targets.ToArray();
-        }
-
-        /// <summary>
-        /// Gets all children actors and puts them in a list for use (probably needs optimization - It iterates now based on indented layers)
-        /// </summary>
-        /// <param name="Main"> the default actor it needs to start from </param>
-        /// <param name="IncludeThisActor"> whether or not to include the base actor into the list </param>
-        /// <returns>A list of all child actors </returns>
-        private static List<Actor> GetChildrenRecursive(Actor Main, bool IncludeThisActor = false)
-        {
-            List<Actor> Actors = new();
-            var DirectChildren = Main.GetChildren<Actor>();
-
-            if (IncludeThisActor)
-                Actors.Add(Main);
-
-            for (int i = 0; i < DirectChildren.Length; i++)
-                Actors.Add(DirectChildren[i]);
-            
-            for(int j = 0 ; j < Actors.Count; j++)
-            {
-                if (Actors[j].HasChildren)
-                {
-                    var NewChildren = Actors[j].GetChildren<Actor>();
-
-                    for (int k = 0; k < NewChildren.Length; k++)
-                        Actors.Add(NewChildren[k]);
-                }
-            }
-
-            return Actors;
-        }
-
-        /// <summary>
-        /// Gets all children actors and puts them in a list for use (probably needs optimization - It iterates now based on indented layers)
-        /// </summary>
-        /// <param name="Main"> the actor it starts at </param>
-        /// <param name="Target"> the external actor object that is used instead of the default one </param>
-        /// <param name="IncludeThisActor"> whether or not to include the base actor into the list </param>
-        /// <returns>A list of all child actors </returns>
-        public static List<Actor> GetChildrenRecursive(Actor Main, Actor Target, bool IncludeThisActor = false)
-        {
-            List<Actor> Actors = new();
-            var DirectChildren = Target.GetChildren<Actor>();
-
-            if (IncludeThisActor)
-                Actors.Add(Main);
-
-            for (int i = 0; i < DirectChildren.Length; i++)
-                Actors.Add(DirectChildren[i]);
-
-            for (int j = 0; j < Actors.Count; j++)
-            {
-                if (Actors[j].HasChildren)
-                {
-                    var NewChildren = Actors[j].GetChildren<Actor>();
-
-                    for (int k = 0; k < NewChildren.Length; k++)
-                        Actors.Add(NewChildren[k]);
-                }
-            }
-
-            return Actors;
-        }
+        #endregion
     }
 }
