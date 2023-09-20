@@ -159,7 +159,6 @@ namespace FlaxEngine
    
             return Target;
         }
-        #endregion
 
         /// <summary>
         /// Gets all instances of the type in any parent it comes across
@@ -189,6 +188,7 @@ namespace FlaxEngine
 
             return Targets.ToArray();
         }
+        #endregion
 
         #region Internal Functions
         /// <summary>
