@@ -141,9 +141,8 @@ namespace FlaxEngine
         /// </summary>
         /// <typeparam name="T"> the target type </typeparam>
         /// <param name="Main"> the actor it starts at </param>
-        /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
         /// <returns> first instance of the targeted type </returns>
-        public static T GetScriptInParent<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        public static T GetScriptInParent<T>(Actor Main) where T : Script
         {
             var Parents = Internal_GetParents(Main);
             T Target = null;
@@ -154,10 +153,6 @@ namespace FlaxEngine
 
                 if (Target != null)
                 {
-                    if (!Target.Enabled && !IncludeInactive)
-                        continue;
-
-                    else
                         break;
                 }
             }
