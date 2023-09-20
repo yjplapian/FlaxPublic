@@ -15,13 +15,13 @@ namespace FlaxEngine
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
 
-#if FLAX_EDITOR
             if (LayersMask.HasLayer(1 << Index))
             {
+#if FLAX_EDITOR
                 Debug.LogWarning($" The LayersMask has already a layer of {Index}");
+#endif
                 return LayersMask;  
             }
-#endif
 
             LayersMask.Mask |= ((uint)1 << Index);
             return LayersMask;
@@ -39,13 +39,13 @@ namespace FlaxEngine
                 if (Value > 32 || Value < 0)
                     throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 0 ~ 31");
 
-#if FLAX_EDITOR
                 if (LayersMask.HasLayer(1 << Value))
                 {
+#if FLAX_EDITOR
                     Debug.LogWarning($" The LayersMask has already a layer of {Index}");
+#endif
                     return LayersMask;
                 }
-#endif
 
                 LayersMask.Mask |= ((uint) 1 << Value);
             }
@@ -63,13 +63,13 @@ namespace FlaxEngine
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
 
-#if FLAX_EDITOR
             if (!LayersMask.HasLayer(1 << Index))
             {
+#if FLAX_EDITOR
                 Debug.LogWarning($" The LayersMask does not contain a layer of {Index}. Can't remove non-existent layers.");
+#endif
                 return LayersMask;
             }
-#endif
 
             LayersMask.Mask &= ~((uint)1 << Index);
             return LayersMask;
@@ -87,13 +87,13 @@ namespace FlaxEngine
                 if (Value > 32 || Value < 0)
                     throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 0 ~ 31");
 
-#if FLAX_EDITOR
                 if (!LayersMask.HasLayer(1 << Value))
                 {
+#if FLAX_EDITOR
                     Debug.LogWarning($" The LayersMask does not contain a layer of {Value}. Can't remove non-existent layers.");
+#endif
                     return LayersMask;
                 }
-#endif
 
                 LayersMask.Mask &= ~((uint)1 << Value);
             }
