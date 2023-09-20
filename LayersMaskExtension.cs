@@ -6,51 +6,56 @@ namespace FlaxEngine
     public static class LayersMaskExtension
     {
         /// <summary>
-        /// Sets a mutlitude layers of the edited LayersMask
+        /// Adds a singlular layer to the layers mask
+        /// </summary>
+        /// <param name="LayersMask"> The LayerMask being edited </param>
+        /// <param name="Index"> The targeted layer </param>
+        public static LayersMask AddLayer(LayersMask LayersMask, int Index)
+        {
+            if (Index > 32 || Index < 0)
+                throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
+
+            LayersMask.Mask |= ((uint)1 << Index);
+            return LayersMask;
+        }
+
+        /// <summary>
+        /// Adds a mutlitude layers to the targeted LayersMask
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layers </param>
-        /// <returns> A LayersMask with the specified layers checked </returns>
-        public static LayersMask SetLayers(LayersMask LayersMask, int[] Index)
+        public static LayersMask AddLayers(LayersMask LayersMask, int[] Index)
         {
             foreach (var Value in Index)
             {
                 if (Value > 32 || Value < 0)
                     throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 0 ~ 31");
 
-                LayersMask.Mask += (uint)Value;
+                LayersMask.Mask |= ((uint) 1 << Value);
             }
 
             return LayersMask;
         }
 
         /// <summary>
-        /// Adds A single layer to the layers mask
+        /// Removes a singular layer at the provided index value
         /// </summary>
-        public static LayersMask AddLayer(LayersMask LayersMask, int Index)
-        {
-            if (Index > 32 || Index < 0)
-                throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
-
-            LayersMask.Mask += (uint)Index;
-            return LayersMask;
-        }
-
-        /// <summary>
-        /// Removes a layer at the index provided
-        /// </summary>
+        /// <param name="LayersMask"> The LayerMask being edited </param>
+        /// <param name="Index"> The targeted layer </param>
         public static LayersMask RemoveLayer(LayersMask LayersMask, int Index)
         {
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
 
-            LayersMask.Mask -= (uint)Index;
+            LayersMask.Mask &= ~((uint)1 << Index);
             return LayersMask;
         }
 
         /// <summary>
-        /// Removes an array of layers at the indexes provided
+        /// Removes an array of layers at the provided index values
         /// </summary>
+        /// <param name="LayersMask"> The LayerMask being edited </param>
+        /// <param name="Index"> The targeted layers </param>
         public static LayersMask RemoveLayers(LayersMask LayersMask, int[] Index)
         {
             foreach(int Value in Index) 
@@ -58,23 +63,47 @@ namespace FlaxEngine
                 if (Value > 32 || Value < 0)
                     throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 0 ~ 31");
 
-                LayersMask.Mask -= (uint)Value; 
+                LayersMask.Mask &= ~((uint)1 << Value);
             }
+
             return LayersMask;
         }
 
         /// <summary>
-        /// Sets the LayersMask to a single layer
+        /// Sets the LayersMask to a single layer, overriding existing flags
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layer </param>
         /// <returns> A LayersMask with the specified layer checked </returns>
-        public static LayersMask SetLayer(LayersMask LayersMask, int Index)
+        public static LayersMask SetLayerAs(LayersMask LayersMask, int Index)
         {
+            LayersMask.Mask = 0;
+
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
 
-            LayersMask.Mask = (uint)Index;
+            LayersMask.Mask |= ((uint)1 << Index);
+            return LayersMask;
+        }
+
+        /// <summary>
+        /// Sets the LayersMask to a set of layers, overriding existing flags
+        /// </summary>
+        /// <param name="LayersMask"> The LayerMask being edited </param>
+        /// <param name="Index"> The targeted layer </param>
+        /// <returns> A LayersMask with the specified layer checked </returns>
+        public static LayersMask SetLayersAs(LayersMask LayersMask, int[] Index)
+        {
+            LayersMask.Mask = 0;
+
+            foreach (int Value in Index)
+            {
+                if (Value > 32 || Value < 0)
+                    throw new ArgumentOutOfRangeException($"integer value of {Value} is not accepted. Only use values between 0 ~ 31");
+
+                LayersMask.Mask |= ((uint)1 << Value);
+            }
+
             return LayersMask;
         }
 
@@ -86,14 +115,14 @@ namespace FlaxEngine
         /// <returns> True: if the value </returns>
         public static bool GetValidCollisionLayer(int Layer, uint LayerMask)
         {
+            var Settings = GameSettings.Load<PhysicsSettings>();
+
             if (Layer < 0 || Layer > 31)
                 throw new ArgumentOutOfRangeException($"argument of {Layer} is not accepted. Use an index value of 0 ~ 31");
 
-            Debug.Log($"{(LayerMask & (1 << Layer)) != 0}");
-            return (LayerMask & (1 << Layer)) != 0;
+            return (Settings.LayerMasks[LayerMask] & (1 << Layer)) != 0;
         }
 
-        //TODO: Finish writing docs
         /// <summary>
         /// Sets the collision between two layers in the Matrix Collision layers in the PhysicsSettings directly
         /// Warning! :: Preview Function. Is buggy at the moment
