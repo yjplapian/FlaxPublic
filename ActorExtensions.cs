@@ -13,13 +13,19 @@ namespace FlaxEngine
         /// <param name="Main"> the base actor it starts at </param>
         /// <param name="IncludeScene"> whetherr or not to include the scene object </param>
         /// <returns> The root (unparented) Actor </returns>
-        public static Actor GetRoot(Actor Main, bool IncludeScene = false)
+        public static Actor GetRoot(this Actor Main, bool IncludeScene = false)
         {
             Actor Parent = Main.Parent;
-            List<Actor> Parents = new List<Actor> 
-            {
-                Parent 
-            };
+            List<Actor> Parents = new();
+
+            if (!IncludeScene && Parent.GetType() == typeof(Scene))
+                return null;
+
+            if (IncludeScene && Parent.GetType() != typeof(Scene))
+                Parents.Add(Parent);
+
+            else if(!IncludeScene && Parent.GetType() != typeof(Scene))
+                Parents.Add(Parent);
 
             while(Parent.Parent != null)
             {
@@ -39,7 +45,7 @@ namespace FlaxEngine
         /// <typeparam name="T"> The type the actor needs to be cast as </typeparam>
         /// <param name="Main"> The target actor it starts searching from </param>
         /// <returns> The first cast actor it finds </returns>
-        public static T GetParent<T>(Actor Main) where T : Actor
+        public static T GetParent<T>(this Actor Main) where T : Actor
         {
             T Tmp = null;
             List<Actor> Parents = Internal_GetParents(Main, false);
@@ -61,7 +67,7 @@ namespace FlaxEngine
         /// <typeparam name="T"> The type the actor needs to be cast as </typeparam>
         /// <param name="Main"> The target actor it starts searching from </param>
         /// <returns> Array of actors cast as T </returns>
-        public static T[] GetParents<T>(Actor Main) where T : Actor
+        public static T[] GetParents<T>(this Actor Main) where T : Actor
         {
             List<Actor> Parents = Internal_GetParents(Main, false);
             List<T> Targets = new List<T>();
@@ -85,7 +91,7 @@ namespace FlaxEngine
         /// <param name="Main"> The targeted Actor it needs to check the child actors of </param>
         /// <param name="IncludeInactive"> Whether or not to skip inactive actors </param>
         /// <returns> The first type it comes across from all the child actors </returns>
-        public static T GetScriptInChild<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        public static T GetScriptInChild<T>(this Actor Main, bool IncludeInactive = false) where T : Script
         {
             List<Actor> Children = Internal_GetAllChildren(Main);
             T Target = null;
@@ -114,7 +120,7 @@ namespace FlaxEngine
         /// <param name="Main"> The targeted Actor it needs to check the child actors of </param>
         /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
         /// <returns> The array of the type it comes across from all the child actors </returns>
-        public static T[] GetScriptsInChildren<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        public static T[] GetScriptsInChildren<T>(this Actor Main, bool IncludeInactive = false) where T : Script
         {
             List<Actor> Children = Internal_GetAllChildren(Main);
             List<T> Targets = new();
@@ -142,7 +148,7 @@ namespace FlaxEngine
         /// <typeparam name="T"> the target type </typeparam>
         /// <param name="Main"> the actor it starts at </param>
         /// <returns> first instance of the targeted type </returns>
-        public static T GetScriptInParent<T>(Actor Main) where T : Script
+        public static T GetScriptInParent<T>(this Actor Main) where T : Script
         {
             var Parents = Internal_GetParents(Main);
             T Target = null;
@@ -167,7 +173,7 @@ namespace FlaxEngine
         /// <param name="Main"> the actor it starts at </param>
         /// <param name="IncludeInactive"> Whether or not to skip inactive actors or inactive types </param>
         /// <returns> an array of instances of the targeted type </returns>
-        public static T[] GetScriptsInParents<T>(Actor Main, bool IncludeInactive = false) where T : Script
+        public static T[] GetScriptsInParents<T>(this Actor Main, bool IncludeInactive = false) where T : Script
         {
             var Parents = Internal_GetParents(Main);
             List<T> Targets = new();

@@ -10,7 +10,7 @@ namespace FlaxEngine
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layer </param>
-        public static LayersMask AddLayer(LayersMask LayersMask, int Index)
+        public static LayersMask AddLayer(this LayersMask LayersMask, int Index)
         {
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
@@ -32,7 +32,7 @@ namespace FlaxEngine
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layers </param>
-        public static LayersMask AddLayers(LayersMask LayersMask, int[] Index)
+        public static LayersMask AddLayers(this LayersMask LayersMask, int[] Index)
         {
             foreach (var Value in Index)
             {
@@ -58,7 +58,7 @@ namespace FlaxEngine
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layer </param>
-        public static LayersMask RemoveLayer(LayersMask LayersMask, int Index)
+        public static LayersMask RemoveLayer(this LayersMask LayersMask, int Index)
         {
             if (Index > 32 || Index < 0)
                 throw new ArgumentOutOfRangeException($"integer value of {Index} is not accepted. Only use values between 0 ~ 31");
@@ -80,7 +80,7 @@ namespace FlaxEngine
         /// </summary>
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layers </param>
-        public static LayersMask RemoveLayers(LayersMask LayersMask, int[] Index)
+        public static LayersMask RemoveLayers(this LayersMask LayersMask, int[] Index)
         {
             foreach(int Value in Index) 
             {
@@ -107,7 +107,7 @@ namespace FlaxEngine
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layer </param>
         /// <returns> A LayersMask with the specified layer checked </returns>
-        public static LayersMask SetLayerAs(LayersMask LayersMask, int Index)
+        public static LayersMask SetLayerAs(this LayersMask LayersMask, int Index)
         {
             LayersMask.Mask = 0;
 
@@ -124,7 +124,7 @@ namespace FlaxEngine
         /// <param name="LayersMask"> The LayerMask being edited </param>
         /// <param name="Index"> The targeted layer </param>
         /// <returns> A LayersMask with the specified layer checked </returns>
-        public static LayersMask SetLayersAs(LayersMask LayersMask, int[] Index)
+        public static LayersMask SetLayersAs(this LayersMask LayersMask, int[] Index)
         {
             LayersMask.Mask = 0;
 
@@ -145,7 +145,7 @@ namespace FlaxEngine
         /// <param name="LayerMask"> The targeted LayersMask in the Matrix </param>
         /// <param name="Layer"> The layer that is being compared to </param>
         /// <returns> True: if the value </returns>
-        public static bool GetValidCollisionLayer(int Layer, uint LayerMask)
+        public static bool GetValidCollisionLayer(this LayersMask Mask, int Layer, uint LayerMask)
         {
             var Settings = GameSettings.Load<PhysicsSettings>();
 
@@ -161,8 +161,9 @@ namespace FlaxEngine
         /// <param name="MatrixLayer"> The targeted matrix layer </param>
         /// <param name="Layer"> The layer it needs to set </param>
         /// <param name="Ignore"> Whether to toggle the collision between layers on or off </param>
-        public static void SetMatrixCollisionLayer(int MatrixLayer, int Layer, bool Ignore)
+        public static void SetMatrixCollisionLayer(this LayersMask Mask, int MatrixLayer, int Layer, bool Ignore)
         {
+
             if (MatrixLayer < 0 || MatrixLayer > 31)
                 throw new ArgumentOutOfRangeException($"argument of {MatrixLayer} is not accepted. Use an index value of 0 ~ 31");
 
